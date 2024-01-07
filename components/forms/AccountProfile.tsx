@@ -10,6 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea";
@@ -134,23 +135,24 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 name="profile_photo"
                 render={({ field }) => (
                     <FormItem className='flex items-center gap-4'>
-                    <FormLabel className='account-form_image-label'>
-                        { field.value ? (
-                            <Image src={field.value} alt='Profile Photo' width={96} height={96} priority
-                            className='rounded-full object-contain cursor-pointer'
-                            style={{ maxHeight: '96px', maxWidth: '96px', objectFit: 'cover' }} />
-                        ): <Image src='assets/profile.svg' alt='Profile Photo' width={24} height={24}
-                            className='object-contain cursor-pointer' /> 
-                        }
-                    </FormLabel>
-                    <FormControl className='flex-1 text-base-semibold text-gray-200'>
-                        <Input
-                        type='file'
-                        accept='image/*'
-                        placeholder='Upload a photo'
-                        className='account-form_image-input'
-                        onChange={ (e) => handleImage(e, field.onChange)} />
-                    </FormControl>
+                        <FormLabel className='account-form_image-label'>
+                            { field.value ? (
+                                <Image src={field.value} alt='Profile Photo' width={96} height={96} priority
+                                className='rounded-full object-contain cursor-pointer'
+                                style={{ maxHeight: '96px', maxWidth: '96px', objectFit: 'cover' }} />
+                            ): <Image src='assets/profile.svg' alt='Profile Photo' width={24} height={24}
+                                className='object-contain cursor-pointer' /> 
+                            }
+                        </FormLabel>
+                        <FormControl className='flex-1 text-base-semibold text-gray-200'>
+                            <Input
+                            type='file'
+                            accept='image/*'
+                            placeholder='Upload a photo'
+                            className='account-form_image-input'
+                            onChange={ (e) => handleImage(e, field.onChange)} />
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -169,6 +171,7 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                             { ... field }
                             />
                         </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -179,14 +182,15 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 name="username"
                 render={({ field }) => (
                     <FormItem className='flex flex-col gap-3 w-full'>
-                    <FormLabel className='text-base-semibold text-light-2'>Username</FormLabel>
-                    <FormControl>
-                        <Input
-                        type='text'
-                        className='account-form_input no-focus'
-                        { ... field }
-                        />
-                    </FormControl>
+                        <FormLabel className='text-base-semibold text-light-2'>Username</FormLabel>
+                        <FormControl>
+                            <Input
+                            type='text'
+                            className='account-form_input no-focus'
+                            { ... field }
+                            />
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -197,21 +201,20 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 name="bio"
                 render={({ field }) => (
                     <FormItem className='flex flex-col gap-3 w-full'>
-                    <FormLabel className='text-base-semibold text-light-2'>Bio</FormLabel>
-                    <FormControl>
-                        <Textarea
-                        rows={10}
-                        className='account-form_input no-focus'
-                        { ... field }
-                        />
-                    </FormControl>
+                        <FormLabel className='text-base-semibold text-light-2'>Bio</FormLabel>
+                        <FormControl>
+                            <Textarea
+                            rows={10}
+                            className='account-form_input no-focus'
+                            { ... field }
+                            />
+                        </FormControl>
+                        <FormMessage />
                     </FormItem>
                 )}
                 />
 
-
-
-                <Button type="submit" className="bg-primary-500">Submit</Button>
+                <Button type="submit" className="bg-primary-500 hover:bg-violet-400 duration-300">Submit</Button>
             </form>
         </Form>
     )

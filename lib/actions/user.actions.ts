@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose"
 
-//Action on server-side to update user in the database
+//Actions on server-side regarding the user collection
 
 interface Params {
     userId: string,
@@ -14,6 +14,9 @@ interface Params {
     image: string,
     path: string,
 }
+
+
+//Updates a user document
 export async function updateUser({
     userId,
     username,
@@ -54,4 +57,23 @@ export async function updateUser({
         throw new Error(`Cannot create/update user: ${error.message}`);
     }
 
+}
+
+//Fetch a user document
+export async function fetchUser(userId: string) {
+    try {
+        //Connect to database
+        connectToDB();
+
+        //Fetch user document using User model
+        return await User
+            .findOne({ id: userId })
+            // .populate({
+            //     path: 'communities',
+            //     model: Community
+            
+            // });
+    } catch (error: any) {
+        throw new Error(`Cannot fetch user: ${ error.message }`);
+    }
 }
