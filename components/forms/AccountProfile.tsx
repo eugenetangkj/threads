@@ -1,6 +1,6 @@
 "use client"
 
-import { ChangeEvent } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from "zod"
 import { UserValidation } from '@/lib/validations/user';
 import Image from 'next/image';
+import { isBase64Image } from '@/lib/utils';
+import { useUploadThing } from '@/lib/uploadthing';
+import { start } from 'repl';
 
 //Profile form that can appear differently in different areas depending on the props given
 
@@ -39,24 +42,67 @@ interface Props {
 
 
 const AccountProfile = ({ user, btnTitle } : Props) => {
+    const [files, setFiles] = useState<File[]>([]);
+    const { startUpload } = useUploadThing("media");
+
     const form = useForm({
         resolver: zodResolver(UserValidation), //Validation
         defaultValues: { //Placing default values into the form
-            profile_photo: '',
-            name: '',
-            username: '',
-            bio: '',
+            profile_photo: user?.image || "",
+            name: user?.name || "",
+            username: user?.username || "",
+            bio: user?.bio || "",
         }
     });
 
-    const handleImage = (e: ChangeEvent, fieldChange: (value: string) => void ) => {
+    //Handles when user selects a new image
+    const handleImage = (e: ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void ) => {
+        //Prevent browser from reloading
         e.preventDefault();
+
+        const fileReader = new FileReader();
+
+        //User submitted at least 1 file
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            setFiles(Array.from(e.target.files));
+
+            //User did not submit a file of type image
+            if (! file.type.includes('image')) {
+                return;
+            }
+
+            fileReader.onload = async (event) => {
+                const imageDataUrl = event.target?.result?.toString() || "";
+                fieldChange(imageDataUrl); //Update form field with the newly uploaded image
+            }
+
+            fileReader.readAsDataURL(file); //Read the given image file
+
+        }
     }
 
-    function onSubmit(values: z.infer<typeof UserValidation> ) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values)
+    const onSubmit = async (values: z.infer<typeof UserValidation> ) => {
+        //Update user's information in the database
+        const blob = values.profile_photo; //Get the value from the FormField with name profile_photo
+
+        //By checking if the blob is a base 64 image, we can tell if the user has uploaded
+        //a new image. If he uploaded a new image, the value in the form field will be an image.
+        const hasImageChanged = isBase64Image(blob);
+
+        if (hasImageChanged) {
+            //Use UploadThing to upload the image
+            const imgRes = await startUpload(files);
+
+            //Update values in form field
+            if (imgRes && imgRes[0].url) {
+                values.profile_photo = imgRes[0].url;
+            }
+        }
+
+        // TODO: Call backend to update user profile
+
+        
       }
 
     return (
@@ -72,9 +118,10 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                     <FormLabel className='account-form_image-label'>
                         { field.value ? (
                             <Image src={field.value} alt='Profile Photo' width={96} height={96} priority
-                            className='rounded-full object-contain' />
+                            className='rounded-full object-contain cursor-pointer'
+                            style={{ maxHeight: '96px', maxWidth: '96px', objectFit: 'cover' }} />
                         ): <Image src='assets/profile.svg' alt='Profile Photo' width={24} height={24}
-                            className='object-contain' /> 
+                            className='object-contain cursor-pointer' /> 
                         }
                     </FormLabel>
                     <FormControl className='flex-1 text-base-semibold text-gray-200'>
@@ -94,15 +141,15 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                    <FormItem className='flex items-center gap-3 w-full'>
-                    <FormLabel className='text-base-semibold text-light-2'>Name</FormLabel>
-                    <FormControl className='flex-1 text-base-semibold text-gray-200'>
-                        <Input
-                        type='text'
-                        className='account-form_input no-focus'
-                        { ... field }
-                        />
-                    </FormControl>
+                    <FormItem className='flex flex-col gap-3 w-full'>
+                        <FormLabel className='text-base-semibold text-light-2'>Name</FormLabel>
+                        <FormControl>
+                            <Input
+                            type='text'
+                            className='account-form_input no-focus'
+                            { ... field }
+                            />
+                        </FormControl>
                     </FormItem>
                 )}
                 />
@@ -112,9 +159,9 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 control={form.control}
                 name="username"
                 render={({ field }) => (
-                    <FormItem className='flex items-center gap-3 w-full'>
+                    <FormItem className='flex flex-col gap-3 w-full'>
                     <FormLabel className='text-base-semibold text-light-2'>Username</FormLabel>
-                    <FormControl className='flex-1 text-base-semibold text-gray-200'>
+                    <FormControl>
                         <Input
                         type='text'
                         className='account-form_input no-focus'
@@ -130,9 +177,9 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
                 control={form.control}
                 name="bio"
                 render={({ field }) => (
-                    <FormItem className='flex items-center gap-3 w-full'>
+                    <FormItem className='flex flex-col gap-3 w-full'>
                     <FormLabel className='text-base-semibold text-light-2'>Bio</FormLabel>
-                    <FormControl className='flex-1 text-base-semibold text-gray-200'>
+                    <FormControl>
                         <Textarea
                         rows={10}
                         className='account-form_input no-focus'
