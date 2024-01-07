@@ -7,11 +7,9 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea";
@@ -23,7 +21,8 @@ import { UserValidation } from '@/lib/validations/user';
 import Image from 'next/image';
 import { isBase64Image } from '@/lib/utils';
 import { useUploadThing } from '@/lib/uploadthing';
-import { start } from 'repl';
+import { updateUser } from '@/lib/actions/user.actions';
+import { usePathname, useRouter } from 'next/navigation';
 
 //Profile form that can appear differently in different areas depending on the props given
 
@@ -44,6 +43,9 @@ interface Props {
 const AccountProfile = ({ user, btnTitle } : Props) => {
     const [files, setFiles] = useState<File[]>([]);
     const { startUpload } = useUploadThing("media");
+
+    const router = useRouter();
+    const pathname = usePathname();
 
     const form = useForm({
         resolver: zodResolver(UserValidation), //Validation
@@ -100,9 +102,26 @@ const AccountProfile = ({ user, btnTitle } : Props) => {
             }
         }
 
-        // TODO: Call backend to update user profile
+        //Call backend to update user profile
+        await updateUser({
+            userId: user.id,
+            username: values.username,
+            name: values.name,
+            bio: values.bio,
+            image: values.profile_photo,
+            path: pathname  //Path that we are coming from
+        });
 
-        
+        //Reroute after updating user information, depending on where
+        //the user had come from
+        if (pathname === '/profile/edit') {
+            //Navigate back to the previous page
+            router.back();
+        } else {
+            //Go from onboarding to main page
+            router.push('/');
+        }
+          
       }
 
     return (
