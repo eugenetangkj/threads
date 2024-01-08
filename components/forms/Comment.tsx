@@ -27,7 +27,7 @@ import { updateUser } from '@/lib/actions/user.actions'; //TODO: Update to updat
 import { usePathname, useRouter } from 'next/navigation';
 
 // Add comment to thread
-import { createThread } from '@/lib/actions/thread.actions';
+import { addCommentToThread } from '@/lib/actions/thread.actions';
 
 import Image from 'next/image';
 
@@ -43,7 +43,6 @@ function Comment({
     currentUserImg,
     currentUserId
 }: Props) {
-    const router = useRouter();
     const pathname = usePathname();
 
     const form = useForm({
@@ -54,23 +53,18 @@ function Comment({
     });
 
     //Runs when user presses the create comment button
-    //values will be an argument for onSubmit which comes about as we are using React hook forms
     const onSubmit = async (values: z.infer<typeof CommentValidation>) => {
-        // //Create thread
-        // await createThread({
-        //     text: values.thread,
-        //     author: userId,
-        //     communityId: null,
-        //     path: pathname,
-        // });
+        //Create comment
+        await addCommentToThread(
+            threadId,
+            values.thread,
+            JSON.parse(currentUserId),
+            pathname
+        );
 
-        // //Navigate to home page
-        // router.push("/");
-   
+        //Reset field to add another comment
+        form.reset();
     };
-
-
-
 
 
     return (
@@ -78,7 +72,7 @@ function Comment({
             <form onSubmit={form.handleSubmit(onSubmit)}
                 className="comment-form">
 
-                {/* Thread change field */}
+                {/* Comment field */}
                 <FormField
                 control={form.control}
                 name="thread"
@@ -91,6 +85,7 @@ function Comment({
                         <FormControl className='border-none bg-transparent'>
                             <Input
                             type="text"
+                            {...field}
                             placeholder="Comment on the thread"
                             className='no-focus text-light-1 outline-none'
                             />
@@ -100,8 +95,6 @@ function Comment({
                 />
 
                 <Button type="submit" className="comment-form_btn ">Reply</Button>
-
-
             </form>
         </Form>
     )
