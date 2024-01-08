@@ -33,7 +33,7 @@ export async function createThread({text, author, communityId, path,}: Params) {
 
         revalidatePath(path);
     } catch (error: any) {
-        throw new Error(`Error creating thread: ${ error.message }`)
+        throw new Error(`Error creating thread: ${ error.message }`);
 
     }
 }
@@ -72,10 +72,48 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 
         return { posts, isNext };
 
-        
+
     } catch (error : any) {
-        console.log(`Cannot fetch posts: ${error.message}`);
+        throw new Error(`Error fetching posts: ${error.message}`);
     }
+}
+
+//Fetch a given thread by id
+export async function fetchThreadById(id: string) {
+    try {
+        connectToDB();
+        //TODO: Populate communities
+        const thread = await Thread.findById(id)
+                        .populate({
+                            path: 'author',
+                            model: User,
+                            select: "_id id name image" //Select which field we need from the User model
+                        })
+                        .populate({
+                            path: 'children',
+                            populate: [
+                                {
+                                    path: 'author',
+                                    model: User,
+                                    select: "_id id name parentId image"
+                                },
+                                {
+                                    path: 'children',
+                                    model: Thread,
+                                    populate: {
+                                        path: 'author',
+                                        model: User,
+                                        select: "_id id name parentId image"
+                                    }
+                                }
+
+                            ]
+                        }).exec();
+        return thread;
+    } catch (error: any) {
+        throw new Error(`Error fetching thread: ${ error.message }`)
+    }
+
 }
 
 
