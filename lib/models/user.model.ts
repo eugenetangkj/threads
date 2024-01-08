@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
             ref: 'Community'
         }
     ]
-})
+});
 
 //The first time we run this, there is no User model in all our models. Thus, it relies
 //on the second option to create a User model using the userSchema. Afterwards, once the

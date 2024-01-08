@@ -27,6 +27,7 @@ import { updateUser } from '@/lib/actions/user.actions'; //TODO: Update to updat
 import { usePathname, useRouter } from 'next/navigation';
 
 // Post thread form to post thread
+import { createThread } from '@/lib/actions/thread.actions';
 
 //Props that is passed to the account profile component
 interface Props {
@@ -55,11 +56,21 @@ function PostThread({ userId } : { userId: string}) {
     });
 
     //Runs when user presses the create thread button
-    const onSubmit = () => {
+    //values will be an argument for onSubmit which comes about as we are using React hook forms
+    const onSubmit = async (values: z.infer<typeof ThreadValidation>) => {
+        //Create thread
+        await createThread({
+            text: values.thread,
+            author: userId,
+            communityId: null,
+            path: pathname,
+        });
 
-    }
+        //Navigate to home page
+        router.push("/");
 
-
+        
+    };
 
     return (
         <Form {...form}>
