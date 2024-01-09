@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import User from "../models/user.model";
 import { connectToDB } from "../mongoose"
+import Thread from "../models/thread.model";
 
 //Actions on server-side regarding the user collection
 
@@ -75,5 +76,35 @@ export async function fetchUser(userId: string) {
             // });
     } catch (error: any) {
         throw new Error(`Cannot fetch user: ${ error.message }`);
+    }
+}
+
+//Fetch threads belonging to a given user
+export async function fetchUserPosts(userId: string) {
+    try {
+        connectToDB();
+
+        //Fetch threads belonging to the user with an given userid
+        const threads = await User.findOne({ id: userId }).populate({
+            path: 'threads',
+            model: Thread,
+            populate: {
+                path: 'children',
+                model: Thread,
+                populate: {
+                    path: 'author',
+                    model: User, //Needed as child threads may not be authored by the current user
+                    select: 'name image id'
+                }
+            }
+        }
+        );
+
+        return threads;
+
+       
+
+    } catch (error: any) {
+        throw new Error(`Cannot fetch posts: ${ error.message }`);
     }
 }
