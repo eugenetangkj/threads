@@ -4,6 +4,7 @@ import { connectToDB } from "../mongoose"
 import Thread from "../models/thread.model"
 import User from "../models/user.model";
 import { revalidatePath } from "next/cache";
+import Community from "../models/community.model";
 
 interface Params {
     text: string,
@@ -19,17 +20,31 @@ export async function createThread({text, author, communityId, path,}: Params) {
         //Connect to database
         connectToDB();
 
+        //Try to find community
+        const communityIdObject = await Community.findOne(
+            { id: communityId},
+            { _id: 1}
+        );
+
         //Create a thread in the database using the model
         const createdThread = await Thread.create({
             text,
             author,
-            community: null, //Will be the community of the person who created the thread, else null
+            community: communityIdObject, //Will be the community of the person who created the thread, else null
         });
 
         //Update user to associate this thread with him by adding this thread into the array of threads
         await User.findByIdAndUpdate(author, {
             $push: { threads: createdThread._id }
         })
+
+
+        if (communityIdObject) {
+            //Update Community model with new thread
+            await Community.findByIdAndUpdate(communityIdObject, {
+                $push: { threads: createdThread._id },
+            });
+        }
 
         revalidatePath(path);
     } catch (error: any) {
@@ -50,16 +65,26 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 
         //Find posts that have no parents (top-level threads) as we do not want
         //to fetch posts that are comments. Show latest threads at the top.
-        const postsQuery = Thread.find({ parentId: { $in: [null, undefined]}})
-                                 .sort({ createdAt: 'desc'})
-                                 .skip(skipAmount)
-                                 .limit(pageSize)
-                                 .populate({path: 'author', model: User})
-                                 .populate({ path: 'children', populate: {
-                                    path: 'author',
-                                    model: User,
-                                    select: '_id name parentId image'
-                                 }});
+        const postsQuery = Thread.find({ parentId: { $in: [null, undefined] } })
+        .sort({ createdAt: "desc" })
+        .skip(skipAmount)
+        .limit(pageSize)
+        .populate({
+        path: "author",
+        model: User,
+        })
+        .populate({
+        path: "community",
+        model: Community,
+        })
+        .populate({
+        path: "children", // Populate the children field
+        populate: {
+            path: "author", // Populate the author field within children
+            model: User,
+            select: "_id name parentId image", // Select only _id and username fields of the author
+        },
+        });
         
         //Only want to count top level post
         const totalPostsCount = await Thread.countDocuments({ parentId: { $in: [null, undefined ]}});
@@ -81,34 +106,37 @@ export async function fetchPosts(pageNumber = 1, pageSize = 20) {
 //Fetch a given thread by id
 export async function fetchThreadById(id: string) {
     try {
-        connectToDB();
-        //TODO: Populate communities
         const thread = await Thread.findById(id)
-                        .populate({
-                            path: 'author',
-                            model: User,
-                            select: "_id id name image" //Select which field we need from the User model
-                        })
-                        .populate({
-                            path: 'children',
-                            populate: [
-                                {
-                                    path: 'author',
-                                    model: User,
-                                    select: "_id id name parentId image"
-                                },
-                                {
-                                    path: 'children',
-                                    model: Thread,
-                                    populate: {
-                                        path: 'author',
-                                        model: User,
-                                        select: "_id id name parentId image"
-                                    }
-                                }
-
-                            ]
-                        }).exec();
+          .populate({
+            path: "author",
+            model: User,
+            select: "_id id name image",
+          }) // Populate the author field with _id and username
+          .populate({
+            path: "community",
+            model: Community,
+            select: "_id id name image",
+          }) // Populate the community field with _id and name
+          .populate({
+            path: "children", // Populate the children field
+            populate: [
+              {
+                path: "author", // Populate the author field within children
+                model: User,
+                select: "_id id name parentId image", // Select only _id and username fields of the author
+              },
+              {
+                path: "children", // Populate the children field within children
+                model: Thread, // The model of the nested children (assuming it's the same "Thread" model)
+                populate: {
+                  path: "author", // Populate the author field within nested children
+                  model: User,
+                  select: "_id id name parentId image", // Select only _id and username fields of the author
+                },
+              },
+            ],
+          })
+          .exec();
         return thread;
     } catch (error: any) {
         throw new Error(`Error fetching thread: ${ error.message }`)

@@ -21,7 +21,7 @@ import * as z from "zod"
 import { ThreadValidation } from '@/lib/validations/thread';
 
 //Update database
-import { updateUser } from '@/lib/actions/user.actions'; //TODO: Update to updatethread later
+import { useOrganization } from '@clerk/nextjs';
 
 //Navigation
 import { usePathname, useRouter } from 'next/navigation';
@@ -46,6 +46,7 @@ function PostThread({ userId } : { userId: string}) {
    
     const router = useRouter();
     const pathname = usePathname();
+    const { organization } = useOrganization();
 
     const form = useForm({
         resolver: zodResolver(ThreadValidation), //Validation
@@ -58,18 +59,15 @@ function PostThread({ userId } : { userId: string}) {
     //Runs when user presses the create thread button
     //values will be an argument for onSubmit which comes about as we are using React hook forms
     const onSubmit = async (values: z.infer<typeof ThreadValidation>) => {
-        //Create thread
         await createThread({
             text: values.thread,
             author: userId,
-            communityId: null,
+            communityId: (organization) ? organization.id : null, //Depending on whether user is attached to an organisation
             path: pathname,
         });
-
+      
         //Navigate to home page
         router.push("/");
-
-        
     };
 
     return (
