@@ -8,16 +8,13 @@ async function Page() {
     //Get current user
     const user = await currentUser();
 
-    //No user is logged in. Should not allow access of search page
     if (! user) {
         return null;
     }
 
-    //Get information of the user whose profile is being viewed
     const userInfo = await fetchUser(user.id);
 
     if (! userInfo?.onboarded) {
-        //User has not onboarded. Redirect to onboarding page and do not allow searching of profiles
         redirect('/onboarding');
     }
 
@@ -56,9 +53,6 @@ async function Page() {
                     </>
                   )
 
-                
-            
-            
             }
             </div>
         </section>

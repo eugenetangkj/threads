@@ -166,3 +166,36 @@ export async function fetchUsers({
         throw new Error(`Cannot fetch users: ${ error.message }`);
     }
 }
+
+//Get activity for a particular user
+export async function getActivity(userId: string) {
+    try {
+        connectToDB();
+
+        //Find all threads created by the user
+        const userThreads = await Thread.find({ author: userId });
+
+        //Obtain all the children thread ids from the children field of the user threads
+        const childThreadIDs = userThreads.reduce((acc, userThread) => {
+            return acc.concat(userThread.children)
+        }, []);
+
+        //Want to fetch all the children threads except those that are written by the user himself
+        const replies = await Thread.find({
+            _id: { $in: childThreadIDs },
+            author: { $ne: userId },
+        }).populate({
+            path: 'author',
+            model: 'User',
+            select: 'name image _id'
+        });
+
+        //replies will be all the children threads that are children of the user's posts,
+        //excluding the user's own comments on his own posts
+        return replies;
+
+    } catch (error: any) {
+        throw new Error(`Cannot fetch activity: ${ error.message }`);
+    }
+
+}

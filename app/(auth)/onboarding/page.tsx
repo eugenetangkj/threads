@@ -1,22 +1,33 @@
 import AccountProfile from "@/components/forms/AccountProfile";
+import { fetchUser } from "@/lib/actions/user.actions";
 import { currentUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 //Onboarding page
 async function Page() {
     //Get current user that is signed in
     const user = await currentUser();
 
-    const userInfo = {};
+    if (! user) {
+        return null;
+    }
+
+    const userInfo = await fetchUser(user.id);
+    if (userInfo?.onboarded) {
+        //Should not onboard twice
+        redirect("/");
+    }
+
 
     //Get user information
     const userData = {
-        id: user?.id,
-        objectId: userInfo?.id, //Object id of the user as stored in the database
-        username: userInfo?.username || user?.username, //Can either get from Clerk or from database
-        name: userInfo?.name || user?.firstName || "", //May be empty if dont have username
-        bio: userInfo?.bio || "",
-        image: userInfo?.image || user.imageUrl,
-    }
+        id: user.id,
+        objectId: userInfo?._id, //Object id of the user as stored in the database
+        username: userInfo ? userInfo?.username : user?.username, //Can either get from Clerk or from database
+        name: userInfo ? userInfo?.name : user?.firstName ?? "", //May be empty if dont have username
+        bio: userInfo ? userInfo?.bio : "",
+        image: userInfo ? userInfo?.image : user.imageUrl,
+    };
 
 
     return(
