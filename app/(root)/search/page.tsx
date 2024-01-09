@@ -1,8 +1,66 @@
+import { currentUser } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
+import { fetchUser, fetchUsers } from "@/lib/actions/user.actions";
+import UserCard from "@/components/cards/UserCard";
+
 //Search page
-const Page = async () => {
+async function Page() {
+    //Get current user
+    const user = await currentUser();
+
+    //No user is logged in. Should not allow access of search page
+    if (! user) {
+        return null;
+    }
+
+    //Get information of the user whose profile is being viewed
+    const userInfo = await fetchUser(user.id);
+
+    if (! userInfo?.onboarded) {
+        //User has not onboarded. Redirect to onboarding page and do not allow searching of profiles
+        redirect('/onboarding');
+    }
+
+    //Fetch list of users from database
+    const result = await fetchUsers({
+        userId: user.id,
+        searchString: '',
+        pageNumber: 1,
+        pageSize: 25,
+    })
+
     return (
         <section>
             <h1 className='head-text mb-10'>Search</h1>
+            
+            {/* Search bar */}
+
+            <div className='mt-14 flex flex-col gap-9'>
+                { result.users.length === 0
+                  ? <p className='no-result'>No users</p>
+                  : (
+                    <>
+                        {result.users.map((person) =>
+                            <UserCard
+                            key={ person.id }
+                            id={ person.id }
+                            name={ person.name }
+                            username={ person.username }
+                            imgUrl={ person.image }
+                            personType='User'
+                            
+                            />
+                        )}
+                    
+                    
+                    </>
+                  )
+
+                
+            
+            
+            }
+            </div>
         </section>
     )
 }

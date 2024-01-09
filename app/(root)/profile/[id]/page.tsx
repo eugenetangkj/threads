@@ -27,7 +27,9 @@ async function Page({ params }: { params: { id: string}}) {
     //Get information of the user whose profile is being viewed
     const userInfo = await fetchUser(params.id);
 
-    if (! userInfo?.onboarded) {
+    const currentUserInfo = await fetchUser(user.id);
+
+    if (! currentUserInfo?.onboarded) {
         //User has not onboarded. Redirect to onboarding page and do not allow viewing of profiles
         redirect('/onboarding');
     }
