@@ -1,6 +1,7 @@
 import { fetchUserPosts } from "@/lib/actions/user.actions"
 import { redirect } from "next/navigation";
 import ThreadCard from "../cards/ThreadCard";
+import { fetchCommunityPosts } from "@/lib/actions/community.actions";
 
 interface Props {
     currentUserId: string,
@@ -13,8 +14,14 @@ const ThreadsTab = async ({
     accountId,
     accountType,
 }: Props) => {
-    //TODO: Fetch threads associated with the user
-    let result = await fetchUserPosts(accountId);
+    //Fetch threads associated with the user
+    let result: any;
+
+    if (accountType === 'Community') {
+        result = await fetchCommunityPosts(accountId);
+    } else {
+        result = await fetchUserPosts(accountId);
+    }
 
     if (! result) {
         //No threads
@@ -41,19 +48,7 @@ const ThreadsTab = async ({
               />
             ))}
         </section>
-    )
-
-
-
-
-
-
-    return (
-        <section>
-            ThreadsTab
-        </section>
-    )
-
+    );
 }
 
 export default ThreadsTab
