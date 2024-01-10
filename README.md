@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Threads Clone
+_A project created through Javascript Mastery's [video tutorial](https://www.youtube.com/watch?v=O5cmLDVTgAs) for an introduction to MongoDB and Clerk_
 
-## Getting Started
 
-First, run the development server:
+<img src="public/assets/github-splash.png" width="700" />
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Features
+1. User authentication with Google, GitHub and email via [Clerk](https://www.clerk.com)
+2. Search users
+3. Track activity (e.g. Other's comments on your threads)
+4. Create thread
+5. Communities (implemented using Clerk organisations)
+6. View profile information
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Disclaimers
+I created this web application by going through the [tutorial](https://www.youtube.com/watch?v=O5cmLDVTgAs) hosted by Javascript Mastery. It is meant to be an educational project to expose me the areas of web development that I did not have before. Namely:
+- Usage of NoSQL such as MongoDB and integrating it with Next.JS
+- Introduction of [Clerk](https://www.clerk.com) and how to set it up for seamless and secure user authentication
+- Exposure to pre-built web UI components such as [shadcn](https://ui.shadcn.com/)
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+I would highly recommend this tutorial as it not only provides a good introduction to the above tech stack, but Javascript Mastery also delves into the details of NextJS such as how server-side rendering works and how we can utilise actions to directly connect to the database on the server-side. 👍
